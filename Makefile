@@ -1,4 +1,4 @@
-.PHONY: install submodules build test cucumber clean publish
+.PHONY: install submodules build test cucumber mutation clean publish
 
 install:
 	npm install
@@ -13,6 +13,9 @@ test: cucumber
 
 cucumber: install
 	npm test
+
+mutation: install
+	npm run test:mutation
 
 clean:
 	npm run clean
