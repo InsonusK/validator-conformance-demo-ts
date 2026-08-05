@@ -17,7 +17,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "clean": "rm -rf dist",
-    "test": "cucumber-js 'specs/features/**/*.feature' --require-module ts-node/register --require 'test/steps/**/*.ts' --require 'test/support/**/*.ts' --format ./test/support/pretty-formatter.cts",
+    "test": "cucumber-js 'specs/features/**/*.feature' --require-module ts-node/register --require 'test/steps/**/*.ts' --require 'test/support/**/*.ts' --format ./test/support/pretty-formatter.js",
     "prepublishOnly": "npm run clean && npm run build"
   },
   "devDependencies": {

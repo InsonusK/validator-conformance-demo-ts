@@ -1,4 +1,4 @@
-import type { IFormatterOptions } from '@cucumber/cucumber';
+'use strict';
 
 const { Formatter } = require('@cucumber/cucumber');
 const { PrettyPrinter } = require('@cucumber/pretty-formatter');
@@ -8,12 +8,10 @@ const { PrettyPrinter } = require('@cucumber/pretty-formatter');
  * using @cucumber/cucumber's own Gherkin-style pretty printer, followed by a summary.
  */
 class PrettyFormatter extends Formatter {
-  private readonly printer: InstanceType<typeof PrettyPrinter>;
-
-  constructor(options: IFormatterOptions) {
+  constructor(options) {
     super(options);
     this.printer = new PrettyPrinter({ stream: options.stream, options: { summarise: true } });
-    options.eventBroadcaster.on('envelope', (envelope: unknown) => this.printer.update(envelope));
+    options.eventBroadcaster.on('envelope', (envelope) => this.printer.update(envelope));
   }
 }
 
