@@ -1,0 +1,64 @@
+name: PR master
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  cucumber:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npm test
+
+  mutation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Determine changed source files
+        id: changed
+        run: |
+          FILES=$(git diff --name-only --diff-filter=ACMR "${{ github.event.pull_request.base.sha }}" HEAD -- 'src/**/*.ts' | paste -sd, -)
+          echo "files=$FILES" >> "$GITHUB_OUTPUT"
+
+      - name: Run mutation tests on changed files
+        if: steps.changed.outputs.files != ''
+        run: npx stryker run --mutate "${{ steps.changed.outputs.files }}"
+
+      - name: No source changes to mutate
+        if: steps.changed.outputs.files == ''
+        run: echo "No changes in src/**/*.ts — skipping mutation testing."
+
+  test:
+    name: test-result
+    needs: [cucumber, mutation]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          if [ "${{ needs.cucumber.result }}" != "success" ] || [ "${{ needs.mutation.result }}" != "success" ]; then
+            echo "cucumber: ${{ needs.cucumber.result }}"
+            echo "mutation: ${{ needs.mutation.result }}"
+            exit 1
+          fi
