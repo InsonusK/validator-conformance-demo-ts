@@ -26,6 +26,7 @@
     "@cucumber/pretty-formatter": "^4.0.0",
     "@stryker-mutator/core": "^9.6.1",
     "@types/node": "^22.10.2",
+    "c8": "^12.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2"
   },

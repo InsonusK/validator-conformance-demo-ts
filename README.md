@@ -1,8 +1,18 @@
 # @insonusk/validator-conformance-demo-ts
 
+[![PR master](https://github.com/InsonusK/validator-conformance-demo-ts/actions/workflows/pr_master.yml/badge.svg)](https://github.com/InsonusK/validator-conformance-demo-ts/actions/workflows/pr_master.yml)
+[![Tests](https://img.shields.io/endpoint?url=https://insonusk.github.io/validator-conformance-demo-ts/tests-badge.json)](https://insonusk.github.io/validator-conformance-demo-ts/tests/)
+[![Coverage](https://img.shields.io/endpoint?url=https://insonusk.github.io/validator-conformance-demo-ts/coverage-badge.json)](https://insonusk.github.io/validator-conformance-demo-ts/coverage/)
+[![Mutation score](https://img.shields.io/endpoint?url=https://insonusk.github.io/validator-conformance-demo-ts/mutation-badge.json)](https://insonusk.github.io/validator-conformance-demo-ts/mutation/reports/mutation-report.html)
+
 Demo TypeScript-библиотека валидаторов, соответствие которой проверяется
 кросс-платформенными Cucumber-тестами из подмодуля [`specs/`](specs)
 (репозиторий [validator-conformance-spec](https://github.com/InsonusK/validator-conformance-spec)).
+
+Полные отчёты (пересобираются при каждом push в `master`):
+**[тесты](https://insonusk.github.io/validator-conformance-demo-ts/tests/)** ·
+**[покрытие](https://insonusk.github.io/validator-conformance-demo-ts/coverage/)** ·
+**[mutation testing](https://insonusk.github.io/validator-conformance-demo-ts/mutation/reports/mutation-report.html)**
 
 ## Валидаторы
 

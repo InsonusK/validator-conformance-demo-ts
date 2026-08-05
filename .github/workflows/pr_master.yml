@@ -6,7 +6,33 @@ on:
       - master
 
 jobs:
-  cucumber:
+  # GitHub is configured to require the PR branch to be up to date with master before
+  # merging, so there's no point burning CI time on tests for a stale branch. This job
+  # checks that up front and the test jobs are skipped when it isn't up to date.
+  check-branch-up-to-date:
+    runs-on: ubuntu-latest
+    outputs:
+      up_to_date: ${{ steps.check.outputs.up_to_date }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check PR branch is up to date with base
+        id: check
+        run: |
+          git fetch origin "${{ github.event.pull_request.base.ref }}"
+          BASE_SHA=$(git rev-parse "origin/${{ github.event.pull_request.base.ref }}")
+          if git merge-base --is-ancestor "$BASE_SHA" HEAD; then
+            echo "up_to_date=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "up_to_date=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Branch is not up to date with ${{ github.event.pull_request.base.ref }}. Skipping tests until it is updated/merged."
+          fi
+
+  cucumber-test:
+    needs: [check-branch-up-to-date]
+    if: needs.check-branch-up-to-date.outputs.up_to_date == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,7 +47,9 @@ jobs:
       - run: npm ci
       - run: npm test
 
-  mutation:
+  mutation-test:
+    needs: [check-branch-up-to-date]
+    if: needs.check-branch-up-to-date.outputs.up_to_date == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -50,15 +78,22 @@ jobs:
         if: steps.changed.outputs.files == ''
         run: echo "No changes in src/**/*.ts — skipping mutation testing."
 
-  test:
+  pr-checks:
     name: test-result
-    needs: [cucumber, mutation]
+    needs: [check-branch-up-to-date, cucumber-test, mutation-test]
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          if [ "${{ needs.cucumber.result }}" != "success" ] || [ "${{ needs.mutation.result }}" != "success" ]; then
-            echo "cucumber: ${{ needs.cucumber.result }}"
-            echo "mutation: ${{ needs.mutation.result }}"
+      - name: Require cucumber and mutation tests to pass
+        run: |
+          if [ "${{ needs.check-branch-up-to-date.outputs.up_to_date }}" != "true" ]; then
+            echo "Branch is not up to date with master; skipped tests. Update the branch to run required checks."
+            exit 0
+          fi
+
+          if [ "${{ needs.cucumber-test.result }}" != "success" ] || [ "${{ needs.mutation-test.result }}" != "success" ]; then
+            echo "cucumber-test: ${{ needs.cucumber-test.result }}"
+            echo "mutation-test: ${{ needs.mutation-test.result }}"
             exit 1
           fi
+          echo "All required checks passed."
