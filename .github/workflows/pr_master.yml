@@ -44,8 +44,8 @@ jobs:
           node-version: '24'
           cache: 'npm'
 
-      - run: npm ci
-      - run: npm test
+      - name: Run Cucumber conformance tests
+        run: make cucumber-test
 
   mutation-test:
     needs: [check-branch-up-to-date]
@@ -55,6 +55,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+          # Full history is needed so the mutation-test delta run can diff against the PR base branch.
           fetch-depth: 0
 
       - uses: actions/setup-node@v4
@@ -62,21 +63,15 @@ jobs:
           node-version: '24'
           cache: 'npm'
 
-      - run: npm ci
-
-      - name: Determine changed source files
-        id: changed
-        run: |
-          FILES=$(git diff --name-only --diff-filter=ACMR "${{ github.event.pull_request.base.sha }}" HEAD -- 'src/**/*.ts' | paste -sd, -)
-          echo "files=$FILES" >> "$GITHUB_OUTPUT"
-
-      - name: Run mutation tests on changed files
-        if: steps.changed.outputs.files != ''
-        run: npx stryker run --mutate "${{ steps.changed.outputs.files }}"
-
-      - name: No source changes to mutate
-        if: steps.changed.outputs.files == ''
-        run: echo "No changes in src/**/*.ts — skipping mutation testing."
+      # ONLY_DELTA limits mutation testing to mutants introduced by changes between the
+      # PR base and HEAD, so only code actually touched by the PR is mutated - and
+      # (unlike the pages.yml full run) this one keeps stryker.conf.json's real break
+      # threshold, so the job fails if the PR's mutation score is too low.
+      - name: Run mutation tests on changed code
+        run: >
+          make mutation-test
+          ONLY_DELTA=true
+          DELTA_BASE=${{ github.event.pull_request.base.sha }}
 
   pr-checks:
     name: test-result
