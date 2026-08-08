@@ -3,3 +3,5 @@ dist/
 *.log
 reports/
 .stryker-tmp/
+tmp/
+public/
